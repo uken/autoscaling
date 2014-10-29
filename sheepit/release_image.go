@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/armon/consul-api"
 )
 
 type ReleaseConfig struct {
@@ -62,5 +64,17 @@ func releaseUpload(registryUrl string) error {
 }
 
 func notifyFleet(consul string, key string, registryUrl string) error {
-	return nil
+	conf := consulapi.DefaultConfig()
+	conf.Address = consul
+
+	client, err := consulapi.NewClient(conf)
+	if err != nil {
+		return err
+	}
+	kv := client.KV()
+
+	pair := &consulapi.KVPair{Key: key, Value: []byte(registryUrl)}
+	_, err = kv.Put(pair, nil)
+
+	return err
 }
