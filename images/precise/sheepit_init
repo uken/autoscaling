@@ -1,0 +1,26 @@
+#!/bin/bash -l
+set -eo pipefail
+
+prepare_build() {
+  echo sheepit: Copying source app to container
+  cp -a /build/. /app/ || exit 44
+}
+
+case $1 in
+  build)
+    shift
+    echo $DEPLOY_ENV > /sheepit_env
+    export SHEEPIT_ENV=$DEPLOY_ENV
+    prepare_build
+    exec $*
+    ;;
+  run)
+    shift
+    SHEEPIT_ENV=$(cat /sheepit_env)
+    export SHEEPIT_ENV
+    exec $*
+    ;;
+  **)
+    exec $*
+    ;;
+esac
