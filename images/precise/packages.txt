@@ -4,6 +4,7 @@ bind9-host
 bison
 build-essential
 curl
+cron
 runit
 dnsutils
 ed
