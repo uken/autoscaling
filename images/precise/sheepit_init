@@ -2,6 +2,8 @@
 set -eo pipefail
 
 prepare_build() {
+  # give some time for user to attach
+  sleep 3
   echo sheepit: Copying source app to container
   cp -a /build/. /app/ || exit 44
 }
