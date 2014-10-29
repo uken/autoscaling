@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -11,6 +12,7 @@ var (
 )
 
 type BuildConfig struct {
+	AppDir      string
 	Environment string
 	BaseImage   string
 	CacheDir    string
@@ -59,7 +61,7 @@ func BuildImage(cfg BuildConfig) error {
 }
 
 func buildTargetId(cfg BuildConfig) (string, error) {
-	appPath, _ := os.Getwd()
+	appPath, _ := filepath.Abs(cfg.AppDir)
 
 	cmdArgs := []string{
 		"run",
@@ -72,9 +74,9 @@ func buildTargetId(cfg BuildConfig) (string, error) {
 		fmt.Sprintf("%s:/build", appPath),
 	}
 
-	expandedCache := os.ExpandEnv(cfg.CacheDir)
-	if expandedCache != "" {
-		cmdArgs = append(cmdArgs, fmt.Sprintf("%s:/cache", expandedCache))
+	if cfg.CacheDir != "" {
+		cachePath, _ := filepath.Abs(cfg.CacheDir)
+		cmdArgs = append(cmdArgs, "-v", fmt.Sprintf("%s:/cache", cachePath))
 	}
 
 	cmdArgs = append(cmdArgs, cfg.BaseImage, "build", fmt.Sprintf("/build/%s", cfg.BuildScript))

@@ -38,9 +38,9 @@ func main() {
 
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case build.FullCommand():
-		os.Chdir(*buildAppDir)
 
 		cfg := BuildConfig{
+			AppDir:      *buildAppDir,
 			CacheDir:    *buildCacheDir,
 			Environment: *buildDeployEnv,
 			BaseImage:   *buildBaseImage,
