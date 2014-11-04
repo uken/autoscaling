@@ -4,6 +4,7 @@ ENV PATH /usr/local/rvm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/s
 
 RUN add-apt-repository -y ppa:nginx/development
 RUN apt-get -y update && apt-get -y install nginx nodejs
+RUN gpg --keyserver hkp://keys.gnupg.net --ignore-time-conflict --recv-keys D39DC0E3
 RUN curl -L https://get.rvm.io | bash -s stable
 RUN echo 'source /usr/local/rvm/scripts/rvm' >> /etc/bash.bashrc
 RUN /usr/local/rvm/bin/rvm-shell -l -c 'rvm requirements'
