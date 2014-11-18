@@ -18,6 +18,7 @@ type BuildConfig struct {
 	BuildScript string
 	TargetImage string
 	Version     string
+	BuildKey    string
 }
 
 func BuildImage(cfg BuildConfig) error {
@@ -76,6 +77,11 @@ func buildTargetId(cfg BuildConfig) (string, error) {
 	if cfg.CacheDir != "" {
 		cachePath, _ := filepath.Abs(cfg.CacheDir)
 		cmdArgs = append(cmdArgs, "-v", fmt.Sprintf("%s:/cache", cachePath))
+	}
+
+	if cfg.BuildKey != "" {
+		keyFile, _ := filepath.Abs(cfg.BuildKey)
+		cmdArgs = append(cmdArgs, "-v", fmt.Sprintf("%s:/root/.ssh/id_rsa:ro", keyFile))
 	}
 
 	cmdArgs = append(cmdArgs, cfg.BaseImage, "build", fmt.Sprintf("/build/%s", cfg.BuildScript))

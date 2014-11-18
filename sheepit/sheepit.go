@@ -21,6 +21,7 @@ func main() {
 		buildBaseImage   = build.Flag("base", "Base Docker image").Default("uken/frontend_19:latest").String()
 		buildTargetImage = build.Flag("target", "Target Image").Required().String()
 		buildVersion     = build.Flag("version", "Build version").Default("0.0.1").String()
+		buildKey         = build.Flag("sshkey", "SSH Key").ExistingFile()
 		buildScript      = build.Arg("script", "Build script").Required().String()
 
 		run        = app.Command("run", "Run commands on a specific build.")
@@ -47,6 +48,7 @@ func main() {
 			Version:     *buildVersion,
 			TargetImage: *buildTargetImage,
 			BuildScript: *buildScript,
+			BuildKey:    *buildKey,
 		}
 		err = BuildImage(cfg)
 	case run.FullCommand():
