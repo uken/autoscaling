@@ -12,17 +12,16 @@ func main() {
 	curDir, _ := os.Getwd()
 
 	var (
-		app = kingpin.New("sheepit", "Docker helper")
+		app = kingpin.New("sheepit", "Deploy helper")
 
 		build            = app.Command("build", "Prepare a docker image for release.")
 		buildAppDir      = build.Flag("dir", "App source directory").Default(curDir).ExistingDir()
-		buildCacheDir    = build.Flag("cache", "Cache Directory on Host").ExistingDir()
+		buildCacheDir    = build.Flag("cache", "Cache Directory on Build Host").ExistingDir()
 		buildDeployEnv   = build.Flag("env", "Environment to setup").Default("staging").String()
-		buildBaseImage   = build.Flag("base", "Base Docker image").Default("uken/frontend_19:latest").String()
+		buildBaseImage   = build.Flag("base", "Base Docker image").Default("uken/frontend_20:latest").String()
 		buildTargetImage = build.Flag("target", "Target Image").Required().String()
 		buildVersion     = build.Flag("version", "Build version").Default("0.0.1").String()
 		buildKey         = build.Flag("sshkey", "SSH Key").ExistingFile()
-		buildScript      = build.Arg("script", "Build script").Required().String()
 
 		run        = app.Command("run", "Run commands on a specific build.")
 		runImage   = run.Flag("image", "Pre-built image").Required().String()
@@ -47,7 +46,6 @@ func main() {
 			BaseImage:   *buildBaseImage,
 			Version:     *buildVersion,
 			TargetImage: *buildTargetImage,
-			BuildScript: *buildScript,
 			BuildKey:    *buildKey,
 		}
 		err = BuildImage(cfg)

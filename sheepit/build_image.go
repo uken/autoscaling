@@ -48,14 +48,14 @@ func BuildImage(cfg BuildConfig) error {
 	SLog.Println("Build passed. Saving target image")
 
 	targetImage := fmt.Sprintf("%s:%s", cfg.TargetImage, cfg.Version)
-	targetId, err := buildCommit(buildId, targetImage)
+	targetID, err := buildCommit(buildId, targetImage)
 
 	if err != nil {
 		SLog.Println("Failed to commit target image")
 		return err
 	}
 
-	SLog.Println("Saved", shortBuildId(targetId), "as", cfg.TargetImage, "version", cfg.Version)
+	SLog.Println("Saved", shortBuildId(targetID), "as", cfg.TargetImage, "version", cfg.Version)
 
 	return err
 }
@@ -84,7 +84,7 @@ func buildTargetId(cfg BuildConfig) (string, error) {
 		cmdArgs = append(cmdArgs, "-v", fmt.Sprintf("%s:/root/.ssh/id_rsa:ro", keyFile))
 	}
 
-	cmdArgs = append(cmdArgs, cfg.BaseImage, "build", fmt.Sprintf("/build/%s", cfg.BuildScript))
+	cmdArgs = append(cmdArgs, cfg.BaseImage, "build", "/build/ops/build")
 
 	return CommandOutput("docker", cmdArgs...)
 }

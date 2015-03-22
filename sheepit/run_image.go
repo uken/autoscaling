@@ -14,6 +14,7 @@ func RunImage(image string, version string, args []string) error {
 		"run",
 		"-t",
 		"-i",
+		"--rm",
 		"--net",
 		"host",
 	}
