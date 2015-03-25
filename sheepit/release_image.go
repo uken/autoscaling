@@ -18,39 +18,53 @@ var (
 )
 
 type ReleaseConfig struct {
-	TargetImage string
-	Version     string
-	Registry    string
-	Consul      string
-	Key         string
+	TargetImage   string
+	Version       string
+	Registry      string
+	Consul        string
+	KeyNamespace  string
+	RollingDeploy bool
+}
+
+func (cfg ReleaseConfig) registryTargetImage() string {
+	return fmt.Sprintf("%s/%s:%s", cfg.Registry, cfg.TargetImage, cfg.Version)
 }
 
 func ReleaseImage(cfg ReleaseConfig) error {
 	var err error
 
-	SLog.Println("Tagging local image as latest")
-	//err := releaseTag(cfg.TargetImage, cfg.Version, "latest")
-	//if err != nil {
-	//	return err
-	//}
+	SLog.Println("Tagging and uploading", cfg.registryTargetImage())
 
-	registryVersion := fmt.Sprintf("%s/%s:%s", cfg.Registry, cfg.TargetImage, cfg.Version)
-	SLog.Println("Tagging and uploading", registryVersion)
-
-	err = releaseTag(cfg.TargetImage, cfg.Version, registryVersion)
+	err = releaseTag(cfg.TargetImage, cfg.Version, cfg.registryTargetImage())
 
 	if err != nil {
 		return err
 	}
 
-	err = releaseUpload(registryVersion)
+	err = releaseUpload(cfg.registryTargetImage())
 
 	if err != nil {
 		return err
 	}
+
+	if cfg.RollingDeploy {
+		err = rollingDeploy(cfg)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	SLog.Println("Updating master version")
+	err = updateKey(cfg.Consul, fmt.Sprintf("%s/current", cfg.KeyNamespace), cfg.registryTargetImage())
+
+	return err
+}
+
+func rollingDeploy(cfg ReleaseConfig) error {
 
 	SLog.Println("Gathering active hosts")
-	hosts, err := collectHosts(cfg.Consul, cfg.Key)
+	hosts, err := collectHosts(cfg.Consul, cfg.KeyNamespace)
 
 	if err != nil {
 		return err
@@ -62,15 +76,17 @@ func ReleaseImage(cfg ReleaseConfig) error {
 	for _, hostKey := range hosts {
 		hostParts := strings.Split(hostKey, "/")
 		host := hostParts[len(hostParts)-1]
-		SLog.Println("Notifying", host, registryVersion)
-		err = updateKey(cfg.Consul, fmt.Sprintf("%s/deploy", hostKey), registryVersion)
+		SLog.Println("Notifying", host, cfg.registryTargetImage())
+
+		err = updateKey(cfg.Consul, fmt.Sprintf("%s/deploy", hostKey), cfg.registryTargetImage())
 		if err != nil {
 			SLog.Println("Failed to notify", host)
 			return ErrorKVUpdate
 		}
+
 		retries := 0
+		SLog.Println("Waiting for", host, "to boot up")
 		for {
-			SLog.Println("Waiting for", host, "to boot up")
 			time.Sleep(HostCheckDelay)
 
 			nodeVer, err := getKey(cfg.Consul, fmt.Sprintf("%s/current", hostKey))
@@ -79,7 +95,7 @@ func ReleaseImage(cfg ReleaseConfig) error {
 				continue
 			}
 
-			if nodeVer == registryVersion {
+			if nodeVer == cfg.registryTargetImage() {
 				SLog.Println(host, "is live")
 				break
 			}
@@ -92,13 +108,9 @@ func ReleaseImage(cfg ReleaseConfig) error {
 				return ErrorHostFailedToBoot
 			}
 		}
-
 	}
 
-	SLog.Println("Updating master version")
-	err = updateKey(cfg.Consul, fmt.Sprintf("%s/current", cfg.Key), registryVersion)
-
-	return err
+	return nil
 }
 
 func releaseTag(image string, version string, tag string) error {
@@ -110,7 +122,6 @@ func releaseTag(image string, version string, tag string) error {
 	}
 
 	return Command("docker", cmdArgs...)
-
 }
 
 func releaseUpload(registryUrl string) error {
@@ -119,7 +130,7 @@ func releaseUpload(registryUrl string) error {
 		registryUrl,
 	}
 
-	return CommandStream("docker", cmdArgs...)
+	return Command("docker", cmdArgs...)
 }
 
 func collectHosts(consul string, key string) ([]string, error) {

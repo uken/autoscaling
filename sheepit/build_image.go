@@ -2,122 +2,89 @@ package main
 
 import (
 	"errors"
-	"fmt"
-	"path/filepath"
+	"net"
+	"net/http"
+	"strings"
+	"text/template"
 )
+
+const envTemplate = `# Generated via sheepit
+{{range .}}{{.}}
+{{end}}
+`
 
 var (
 	ErrorBuildFailed = errors.New("Failed to build")
 )
 
 type BuildConfig struct {
-	AppDir      string
-	Environment string
-	BaseImage   string
-	CacheDir    string
-	BuildScript string
-	TargetImage string
-	Version     string
-	BuildKey    string
+	Env          []string
+	SSHKey       string
+	HTTPEndpoint string
+	BuildFile    string
+	TargetImage  string
+	Version      string
 }
 
 func BuildImage(cfg BuildConfig) error {
 	var err error
 
-	buildId, err := buildTargetId(cfg)
+	srv, err := startHTTPServer(cfg)
 
 	if err != nil {
 		return err
 	}
 
-	SLog.Println("Build log for container", shortBuildId(buildId))
+	defer func() {
+		srv.Close()
+	}()
 
-	err = buildStreamOutput(buildId)
+	err = buildStreamOutput(cfg)
 
 	if err != nil {
 		return err
 	}
 
-	err = buildWaitTargetId(buildId)
-
-	if err != nil {
-		SLog.Println("Build failed")
-		return err
-	}
-
-	SLog.Println("Build passed. Saving target image")
-
-	targetImage := fmt.Sprintf("%s:%s", cfg.TargetImage, cfg.Version)
-	targetID, err := buildCommit(buildId, targetImage)
-
-	if err != nil {
-		SLog.Println("Failed to commit target image")
-		return err
-	}
-
-	SLog.Println("Saved", shortBuildId(targetID), "as", cfg.TargetImage, "version", cfg.Version)
-
+	SLog.Println("Saved", cfg.TargetImage, "version", cfg.Version)
 	return err
 }
 
-func buildTargetId(cfg BuildConfig) (string, error) {
-	appPath, _ := filepath.Abs(cfg.AppDir)
-
+func buildStreamOutput(cfg BuildConfig) error {
 	cmdArgs := []string{
-		"run",
-		"-d",
-		"--net",
-		"host",
-		"-e",
-		fmt.Sprintf("DEPLOY_ENV=%s", cfg.Environment),
-		"-v",
-		fmt.Sprintf("%s:/build", appPath),
+		"build",
+		"-f",
+		cfg.BuildFile,
+		"-t",
+		strings.Join([]string{cfg.TargetImage, cfg.Version}, ":"),
+		".",
 	}
 
-	if cfg.CacheDir != "" {
-		cachePath, _ := filepath.Abs(cfg.CacheDir)
-		cmdArgs = append(cmdArgs, "-v", fmt.Sprintf("%s:/cache", cachePath))
-	}
-
-	if cfg.BuildKey != "" {
-		keyFile, _ := filepath.Abs(cfg.BuildKey)
-		cmdArgs = append(cmdArgs, "-v", fmt.Sprintf("%s:/root/.ssh/id_rsa:ro", keyFile))
-	}
-
-	cmdArgs = append(cmdArgs, cfg.BaseImage, "build", "/build/ops/build")
-
-	return CommandOutput("docker", cmdArgs...)
-}
-
-func buildWaitTargetId(buildId string) error {
-	cmdArgs := []string{
-		"wait",
-		buildId,
-	}
-	retCode, err := CommandOutput("docker", cmdArgs...)
-	if err != nil {
-		return err
-	}
-
-	if retCode != "0" {
-		return ErrorBuildFailed
-	}
-	return nil
-}
-
-func buildStreamOutput(buildId string) error {
-	cmdArgs := []string{
-		"attach",
-		buildId,
-	}
 	return CommandStream("docker", cmdArgs...)
 }
 
-func buildCommit(buildId string, target string) (string, error) {
-	cmdArgs := []string{
-		"commit",
-		buildId,
-		target,
+func startHTTPServer(cfg BuildConfig) (net.Listener, error) {
+	tcpListener, err := net.Listen("tcp", cfg.HTTPEndpoint)
+	if err != nil {
+		return nil, err
 	}
-	return CommandOutput("docker", cmdArgs...)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/ssh_key", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, cfg.SSHKey)
+	})
+
+	mux.HandleFunc("/env", func(w http.ResponseWriter, r *http.Request) {
+		tmpl, _ := template.New("env").Parse(envTemplate)
+		err = tmpl.Execute(w, cfg.Env)
+		if err != nil {
+			http.Error(w, "Template failed", http.StatusBadGateway)
+		}
+	})
+
+	server := &http.Server{
+		Handler: mux,
+	}
+
+	go server.Serve(tcpListener)
+	return tcpListener, nil
 }

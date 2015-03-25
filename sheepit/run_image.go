@@ -21,7 +21,7 @@ func RunImage(image string, version string, args []string) error {
 
 	dockerImage := strings.Join([]string{image, version}, ":")
 
-	cmdArgs = append(cmdArgs, dockerImage, "run")
+	cmdArgs = append(cmdArgs, dockerImage)
 	cmdArgs = append(cmdArgs, args...)
 
 	return CommandStream("docker", cmdArgs...)
