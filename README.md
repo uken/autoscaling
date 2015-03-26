@@ -1,6 +1,8 @@
 # Auto Scaling tools
 _work in progress_
 
+Opinionated deployment tool.
+
 ## How does it work?
 
 We've split deploys into 3 phases:
@@ -15,15 +17,9 @@ For a rails app, it could mean:
 
 These steps are streamlined via `sheepit`.
 
-## Base Images
-
-At the moment we have 2:
-- uken/precise
-Very similar to heroku's cedar stack. It does include a custom docker entrypoint required by `sheepit`.
-- uken/frontend_19
-Basic nginx + ruby 1.9.3 + nodejs
 
 ## Requirements
 
 - Docker
 - Consul
+
