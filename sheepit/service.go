@@ -68,21 +68,7 @@ func RunService(cfg ServiceConfig) error {
 
 	err = setupNewDockerName(cfg)
 
-	err = notifyService(cfg)
-	if err != nil {
-		return err
-	}
-
-	return runNewDockerName(cfg)
-}
-
-func runNewDockerName(cfg ServiceConfig) error {
-	cmdArgs := []string{
-		"start",
-		cfg.Name,
-	}
-
-	return CommandProxy("docker", cmdArgs...)
+	return notifyService(cfg)
 }
 
 func setupNewDockerName(cfg ServiceConfig) error {

@@ -33,7 +33,7 @@ func (cfg ReleaseConfig) registryTargetImage() string {
 func ReleaseImage(cfg ReleaseConfig) error {
 	var err error
 
-	SLog.Println("Tagging and uploading", cfg.registryTargetImage())
+	SLog.Println("Tagging", cfg.registryTargetImage())
 
 	err = releaseTag(cfg.TargetImage, cfg.Version, cfg.registryTargetImage())
 
@@ -41,6 +41,7 @@ func ReleaseImage(cfg ReleaseConfig) error {
 		return err
 	}
 
+	SLog.Println("Uploading", cfg.registryTargetImage())
 	err = releaseUpload(cfg.registryTargetImage())
 
 	if err != nil {
@@ -114,6 +115,7 @@ func rollingDeploy(cfg ReleaseConfig) error {
 }
 
 func releaseTag(image string, version string, tag string) error {
+	// we FORCE tag, which is not nice but allows devs to re-spin builds
 	cmdArgs := []string{
 		"tag",
 		"-f",

@@ -54,7 +54,7 @@ func main() {
 		run        = app.Command("run", "Run commands on a specific build.")
 		runImage   = run.Flag("image", "Pre-built image").Short('i').Required().String()
 		runVersion = run.Flag("version", "Build version").Default(currentGitRevision()).String()
-		runCmd     = run.Arg("cmd", "Command").Default("/bin/bash").Strings()
+		runCmd     = run.Arg("cmd", "Command").Default(RunDefaultCommand).Strings()
 
 		release               = app.Command("release", "Upload and release build.")
 		releaseImage          = release.Flag("image", "Pre-built image").Short('i').Required().String()
@@ -70,7 +70,7 @@ func main() {
 		setupConsul    = setup.Flag("consul", "Consul Address").Default("127.0.0.1:8500").String()
 		setupNamespace = setup.Flag("namespace", "Consul Key Namespace").Short('n').Required().String()
 		setupPort      = setup.Flag("port", "setup Port").Short('p').Int()
-		setupName      = setup.Flag("name", "Docker Container Name").Required().String()
+		setupName      = setup.Flag("name", "Unique Service Name").Required().String()
 		setupWorker    = setup.Arg("worker", "Procfile entry").Required().String()
 
 		service       = app.Command("service", "Setup and start local docker container")
