@@ -66,7 +66,8 @@ func main() {
 
 		setup          = app.Command("setup", "Setup consul template")
 		setupConfig    = setup.Flag("config", "Configuration file (yml)").Short('f').Required().String()
-		setupTemplate  = setup.Flag("template", "Consul template destination").Required().String()
+		setupCheck     = setup.Flag("check", "Consul check type").Required().Enum("http", "script")
+		setupArg       = setup.Flag("check_arg", "Consul check argument").Required().String()
 		setupConsul    = setup.Flag("consul", "Consul Address").Default("127.0.0.1:8500").String()
 		setupNamespace = setup.Flag("namespace", "Consul Key Namespace").Short('n').Required().String()
 		setupPort      = setup.Flag("port", "setup Port").Short('p').Int()
@@ -113,9 +114,10 @@ func main() {
 		err = ReleaseImage(cfg)
 	case setup.FullCommand():
 		cfg := SetupConfig{
-			Config:   *setupConfig,
-			Consul:   *setupConsul,
-			Template: *setupTemplate,
+			Config:    *setupConfig,
+			Consul:    *setupConsul,
+			CheckType: *setupCheck,
+			CheckArg:  *setupArg,
 			ServiceDescription: ServiceDescription{
 				Name:      *setupName,
 				Port:      *setupPort,

@@ -7,9 +7,10 @@ import (
 )
 
 type SetupConfig struct {
-	Consul   string
-	Config   string
-	Template string
+	Consul    string
+	Config    string
+	CheckType string
+	CheckArg  string
 	ServiceDescription
 }
 
@@ -43,6 +44,11 @@ func SetupService(cfg SetupConfig) error {
 		return err
 	}
 
+	err = saveConsulService(cfg)
+	if err != nil {
+		return err
+	}
+
 	return saveUpstartDefinition(cfg)
 }
 
@@ -54,7 +60,27 @@ template {
 	command = "service %s restart"
 }`, cfg.ConfigIn(), cfg.ConfigOut(), cfg.Name)
 
-	return ioutil.WriteFile(cfg.Template, []byte(tpl), 0644)
+	tplFile := fmt.Sprintf("/etc/consul-template/%s", cfg.Name)
+	return ioutil.WriteFile(tplFile, []byte(tpl), 0644)
+}
+
+func saveConsulService(cfg SetupConfig) error {
+	tpl := fmt.Sprintf(`{
+	"service": {
+		"name": "%s",
+		"port": %d,
+		"checks": [
+			{
+			"%s": "%s",
+			"interval": "10s"
+			}
+		]
+	}
+}
+`, cfg.Name, cfg.Port, cfg.CheckType, cfg.CheckArg)
+
+	serviceFile := fmt.Sprintf("/etc/consul.d/%s.json", cfg.Name)
+	return ioutil.WriteFile(serviceFile, []byte(tpl), 0644)
 }
 
 func saveUpstartDefinition(cfg SetupConfig) error {
