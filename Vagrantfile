@@ -6,18 +6,8 @@ ROOT = File.dirname(File.expand_path(__FILE__))
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "phusion-open-ubuntu-12.04-amd64"
-  config.vm.box_url = "https://oss-binaries.phusionpassenger.com/vagrant/boxes/ubuntu-12.04.3-amd64-vbox.box"
+  config.vm.box = "precise64"
   config.ssh.forward_agent = true
-  if File.directory?("#{ROOT}/../passenger-docker")
-    config.vm.synced_folder File.expand_path("#{ROOT}/../passenger-docker"),
-      "/vagrant/passenger-docker"
-  end
-
-  config.vm.provider :vmware_fusion do |f, override|
-    override.vm.box_url = "https://oss-binaries.phusionpassenger.com/vagrant/boxes/ubuntu-12.04.3-amd64-vmwarefusion.box"
-    f.vmx["displayName"] = "baseimage-docker"
-  end
 
   if Dir.glob("#{File.dirname(__FILE__)}/.vagrant/machines/default/*/id").empty?
     # Add lxc-docker package
@@ -26,6 +16,16 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       "apt-get update -qq; apt-get install -q -y --force-yes lxc-docker; "
     # Add vagrant user to the docker group
     pkg_cmd << "usermod -a -G docker vagrant; "
+
+    # Add consul
+    pkg_cmd << "apt-get install -q -y --force-yes unzip curl build-essential;" \
+    "cd /srv && wget -q https://dl.bintray.com/mitchellh/consul/0.5.0_linux_amd64.zip;" \
+    "cd /srv && unzip 0.5.0_linux_amd64.zip; "
+
+    # Add consul template
+    pkg_cmd << "cd /srv && wget -q https://github.com/hashicorp/consul-template/releases/download/v0.7.0/consul-template_0.7.0_linux_amd64.tar.gz;" \
+      "cd /srv && tar xvf consul-template_0.7.0_linux_amd64.tar.gz; "
+
     config.vm.provision :shell, :inline => pkg_cmd
   end
 end
