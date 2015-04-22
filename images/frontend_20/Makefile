@@ -1,5 +1,5 @@
 NAME = uken/frontend_20
-VERSION = 0.0.1
+VERSION = 0.0.2
 
 .PHONY: all build test tag_latest release
 
@@ -9,7 +9,7 @@ build:
 	docker build -t $(NAME):$(VERSION) .
 
 tag_latest:
-	docker tag $(NAME):$(VERSION) $(NAME):latest
+	docker tag -f $(NAME):$(VERSION) $(NAME):latest
 
 release: tag_latest
 	@if ! docker images $(NAME) | awk '{ print $$2 }' | grep -q -F $(VERSION); then echo "$(NAME) version $(VERSION) is not yet built. Please run 'make build'"; false; fi

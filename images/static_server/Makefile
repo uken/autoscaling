@@ -1,5 +1,5 @@
-NAME = uken/trusty
-VERSION = 0.0.2
+NAME = uken/static_server
+VERSION = 0.0.3
 
 .PHONY: all build test tag_latest release
 

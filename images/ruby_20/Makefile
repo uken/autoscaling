@@ -1,5 +1,5 @@
 NAME = uken/ruby_20
-VERSION = 0.0.2
+VERSION = 0.0.4
 
 .PHONY: all build test tag_latest release
 

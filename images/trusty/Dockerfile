@@ -13,7 +13,8 @@ RUN rm -f /tmp/packages.txt
 
 RUN adduser --disabled-password --home=/app --gecos 'SheepIt' app
 
-ADD https://godist.herokuapp.com/projects/ddollar/forego/releases/current/linux-amd64/forego /usr/bin/forego
+# forego with https://github.com/ddollar/forego/pull/55
+ADD https://s3.amazonaws.com/uken-ubuntu-packages/forego/forego /usr/bin/forego
 RUN chmod 655 /usr/bin/forego
 
 ENTRYPOINT ["/bin/bash", "-l", "-c"]
