@@ -1,0 +1,16 @@
+/usr/local/var/rbenv/versions/1.9.3-p484/bin/ruby -r ./siteconf20150422-1689-x83kbq.rb extconf.rb 
+creating Makefile
+
+make  clean
+
+make
+compiling atomic_reference.c
+atomic_reference.c:53:9: warning: implicit declaration of function 'OSAtomicCompareAndSwap64' is invalid in C99 [-Wimplicit-function-declaration]
+    if (OSAtomicCompareAndSwap64(expect_value, new_value, &DATA_PTR(self))) {
+        ^
+1 warning generated.
+linking shared-object atomic_reference.bundle
+
+make  install
+/usr/bin/install -c -m 0755 atomic_reference.bundle .gem.20150422-1689-7v5uay
+installing default atomic_reference libraries

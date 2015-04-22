@@ -1,0 +1,2 @@
+web: bundle exec rackup -p $PORT
+cron: bundle exec clockwork clock.rb

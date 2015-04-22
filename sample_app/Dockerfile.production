@@ -1,0 +1,15 @@
+FROM uken/ruby_212:latest
+MAINTAINER Uken Ops "ops@uken.com"
+
+# Leave Gemfile + lock + bundle install together
+# so docker cache can do its thing
+ADD ./Gemfile /app/Gemfile
+ADD ./Gemfile.lock /app/Gemfile.lock
+RUN /usr/local/rvm/bin/rvm-shell -l -c 'cd /app && bundle install --jobs 4 --deployment --without development test debug'
+
+ADD ./ /app
+
+ENV RACK_ENV production
+
+# Revision env variable + anything via deploy script
+ADD http://127.0.0.1:9090/env /etc/profile.d/custom_env.sh
