@@ -41,6 +41,12 @@ func ReleaseImage(cfg ReleaseConfig) error {
 		return err
 	}
 
+	err = releaseTag(cfg.TargetImage, "latest", cfg.registryTargetImage())
+
+	if err != nil {
+		return err
+	}
+
 	SLog.Println("Uploading", cfg.registryTargetImage())
 	err = releaseUpload(cfg.registryTargetImage())
 
