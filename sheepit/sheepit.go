@@ -56,6 +56,11 @@ func main() {
 		runVersion = run.Flag("version", "Build version").Default(currentGitRevision()).String()
 		runCmd     = run.Arg("cmd", "Command").Default(RunDefaultCommand).Strings()
 
+		base        = app.Command("base", "Create a base image.")
+		baseImage   = base.Flag("image", "Pre-built image").Required().String()
+		baseVersion = base.Flag("version", "Base image version").Default("latest").String()
+		baseTarget  = base.Flag("target", "Target Image").Required().String()
+
 		release               = app.Command("release", "Upload and release build.")
 		releaseImage          = release.Flag("image", "Pre-built image").Short('i').Required().String()
 		releaseVersion        = release.Flag("version", "Build version").Default(currentGitRevision()).String()
@@ -132,6 +137,13 @@ func main() {
 			Consul: *serviceConsul,
 		}
 		err = RunService(cfg)
+	case base.FullCommand():
+		cfg := BaseConfig{
+			BaseImage:   *baseImage,
+			BaseVersion: *baseVersion,
+			TargetImage: *baseTarget,
+		}
+		err = BaseImage(cfg)
 	default:
 		app.Usage(os.Stdout)
 	}

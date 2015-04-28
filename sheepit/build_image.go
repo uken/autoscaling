@@ -52,8 +52,7 @@ func BuildImage(cfg BuildConfig) error {
 func buildStreamOutput(cfg BuildConfig) error {
 	cmdArgs := []string{
 		"build",
-		"--pull=true", // make sure we have the latest upstream image (ex: ruby_20)
-		"--rm=false",  // make sure we don't trash the docker cache between builds
+		"--force-rm=true",
 		"-f",
 		cfg.BuildFile,
 		"-t",

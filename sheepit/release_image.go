@@ -41,7 +41,7 @@ func ReleaseImage(cfg ReleaseConfig) error {
 		return err
 	}
 
-	err = releaseTag(cfg.TargetImage, "latest", cfg.registryTargetImage())
+	err = releaseTag(cfg.TargetImage, cfg.Version, fmt.Sprintf("%s:base", cfg.TargetImage))
 
 	if err != nil {
 		return err
