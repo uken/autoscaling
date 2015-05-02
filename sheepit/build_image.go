@@ -53,6 +53,7 @@ func buildStreamOutput(cfg BuildConfig) error {
 	cmdArgs := []string{
 		"build",
 		"--force-rm=true",
+		"--no-cache=true",
 		"-f",
 		cfg.BuildFile,
 		"-t",
