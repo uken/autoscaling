@@ -90,15 +90,19 @@ author "sheepit"
 
 console log
 
-start on filesystem and started docker
-stop on runlevel [!2345]
+start on started docker
+stop on stopping docker
+
 respawn
+respawn limit unlimited
 
 pre-start script
 sheepit service -f %s
 end script
 
+script
 exec  /usr/bin/docker start -a %s
+end script
 `, cfg.Name, cfg.ConfigOut(), cfg.Name)
 
 	initFile := fmt.Sprintf("/etc/init/%s.conf", cfg.Name)
