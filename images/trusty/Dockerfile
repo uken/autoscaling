@@ -17,4 +17,6 @@ RUN adduser --disabled-password --home=/app --gecos 'SheepIt' app
 ADD https://s3.amazonaws.com/uken-ubuntu-packages/forego/forego /usr/bin/forego
 RUN chmod 655 /usr/bin/forego
 
+RUN chmod 600 /etc/crontab
+
 ENTRYPOINT ["/bin/bash", "-l", "-c"]

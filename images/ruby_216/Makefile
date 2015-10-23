@@ -1,5 +1,5 @@
-NAME = uken/trusty
-VERSION = 0.0.3
+NAME = uken/ruby_216
+VERSION = 0.0.2
 
 .PHONY: all build test tag_latest release
 

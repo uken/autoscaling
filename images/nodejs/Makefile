@@ -1,5 +1,5 @@
-NAME = uken/trusty
-VERSION = 0.0.3
+NAME = uken/nodejs
+VERSION = 0.0.1
 
 .PHONY: all build test tag_latest release
 
